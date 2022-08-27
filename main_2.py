@@ -9,7 +9,7 @@ file_in_lines = []
 temp = set()
 
 
-def get_operands(node, parent_node = None):
+def get_operands(node, parent_node=None):
     variables = []
 
     if is_block_comment(node):
@@ -65,22 +65,22 @@ def get_operands(node, parent_node = None):
             variables += get_operands(value)
     elif node.__class__.__name__ == "Global":
         for name in node.names:
-            str = file_in_lines[node.lineno-1][node.col_offset-1:node.end_col_offset]
-            variables.append({
+            string = file_in_lines[node.lineno - 1][node.col_offset:node.end_col_offset]
+            item = {
                 "lineno": node.lineno - 1,
                 "end_lineno": node.end_lineno,
-                "col_offset": node.col_offset-1+str.find(name),
-                "end_col_offset": node.col_offset-1+str.find(name)+len(name),
+                "col_offset": node.col_offset + string.find(name),
+                "end_col_offset": node.col_offset + string.find(name) + len(name),
                 "value": name
-            })
+            }
+            variables.append(item)
+            assert str(file_in_lines[node.lineno - 1][item["col_offset"]:item["end_col_offset"]]) == str(item['value'])
     # elif node.__class__.__name__ == "Tuple":
 
     else:
-        print_details(node)
-        variables += get_all_possible_operators(node, variables, parent_node)
+        # print_details(node)
+        variables = get_all_possible_operators(node, variables, parent_node)
     return variables
-
-
 
 
 def get_node_detail_obj(node, value=None):
@@ -91,8 +91,29 @@ def get_node_detail_obj(node, value=None):
         "end_col_offset": node.end_col_offset
     }
     if value is not None:
-        item['value'] = value
+
+        value = str(value).replace("\\", "\\\\")
+        value = str(value).replace("\n", "\\n")
+
+        string = file_in_lines[node.lineno - 1][node.col_offset:node.end_col_offset]
+        item = {
+            "lineno": node.lineno - 1,
+            "end_lineno": node.end_lineno,
+            "col_offset": node.col_offset + string.find(str(value)),
+            "end_col_offset": node.col_offset + string.find(str(value)) + len(str(value)),
+            "value": value
+        }
+        if not is_float(value):
+            assert str(file_in_lines[node.lineno - 1][item["col_offset"]:item["end_col_offset"]]) == str(value)
     return item
+
+
+def is_float(fl):
+    try:
+        float(fl)
+        return True
+    except ValueError:
+        return False
 
 
 def print_details(node):
@@ -106,19 +127,23 @@ def get_all_possible_operators(node, variables, parent_node=None):
     if node is not None:
         if not hasattr(node, '__dict__'):
             # variables.append(node)
-            str = file_in_lines[parent_node.lineno-1][parent_node.col_offset-1:parent_node.end_col_offset]
-            variables.append({
+            string = file_in_lines[parent_node.lineno - 1][parent_node.col_offset:parent_node.end_col_offset]
+            item = {
                 "lineno": parent_node.lineno - 1,
                 "end_lineno": parent_node.end_lineno,
-                "col_offset": parent_node.col_offset - 1 + str.find(node),
-                "end_col_offset": parent_node.col_offset - 1 + str.find(node) + len(node),
+                "col_offset": parent_node.col_offset + string.find(node),
+                "end_col_offset": parent_node.col_offset + string.find(node) + len(node),
                 "value": node
-            })
+            }
+            variables.append(item)
+            assert str(file_in_lines[parent_node.lineno - 1][item["col_offset"]:item["end_col_offset"]]) == str(
+                item['value'])
             return variables
 
         keys = node.__dict__.keys()
         for key in keys:
-            if key in ["body", "lineno", "col_offset", "end_lineno", "end_col_offset", "ctx", "dims", "is_async"]:
+            if key in ["body", "lineno", "col_offset", "end_lineno", "end_col_offset", "ctx", "dims", "is_async",
+                       "conversion"]:
                 continue
             elif isinstance(getattr(node, key), list):
                 for item in getattr(node, key):
@@ -147,7 +172,7 @@ def main():
     # all_file_names = ["F:\\IIT\\Projects\\PyProj\\alg_toolbox4\\week_4\\closest_points.py"]
     file_count = 0
     for file_name in all_file_names:
-        if "venv" not in file_name and "__init__.py" not in file_name and "env" not in file_name:
+        if is_not_lib_file(file_name):
             file_count += 1
             print("File number {}".format(file_count))
             try:
@@ -164,8 +189,18 @@ def main():
                     vars = get_operands(function)
                     print(str(func_count) + ". Function " + function.name + ": ")
                     print(vars)
+
             except UnicodeDecodeError:
                 print("Skipping " + file_name)
+
+
+def is_not_lib_file(file_name):
+    list = ["venv", "__init__.py", "env", "BCCB", "flask", "manage.py"]
+
+    for item in list:
+        if item in file_name:
+            return False
+    return True
 
 
 main()

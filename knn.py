@@ -32,6 +32,8 @@ header_data = []
 
 def calc_distance(point1, point2):
     sum_result = 0 + 0
+    print("\n")
+    # print(f"why {sum_result}")
     """
         for i in range(1, len(dim1)):
         temp = (float(dim1[i]) - float(dim2[i]))
