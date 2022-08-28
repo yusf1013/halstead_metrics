@@ -3,6 +3,8 @@
 # """return 1
 # shit = 0
 """shit_2 = 10"""
+import re
+
 """HI there"""
 """ bo # return 1 / max(calc_distance(element, item_in_array), 0.1)"""
 """ bo # return 1 / max(calc_distance(element, item_in_array), 0.1)

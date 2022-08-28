@@ -2,11 +2,27 @@ import ast
 import _ast
 import glob
 
-all_file_names = glob.glob("F:\\IIT\\Projects\\PyProj" + "/**/*.py", recursive=True)
+# all_file_names = glob.glob("F:\\IIT\\Projects\\PyProj" + "/**/*.py", recursive=True)
 solved = ["If", "Compare", "Eq", "List", "Tuple", "IsNot", "Gt", "Lt", "NoneType", "Slice"]
 comments = []
 file_in_lines = []
 temp = set()
+
+
+def get_block_comment(node):
+    comments = []
+    if is_block_comment(node):
+        comments.append({
+            "lineno": node.lineno,
+            "end_lineno": node.end_lineno
+        })
+        return comments
+
+    if hasattr(node, 'body'):
+        for subnode in node.body:
+            comments += get_block_comment(subnode)
+
+    return comments
 
 
 def get_operands(node, parent_node=None):
@@ -44,6 +60,8 @@ def get_operands(node, parent_node=None):
     elif node.__class__.__name__ == "Call":  # node.func.attr = split; node.func.value is name .value = point1
         for arg in node.args:
             variables += get_operands(arg)
+        if hasattr(node, "func") and hasattr(node.func, "value"):
+            variables += get_operands(node.func.value)
     elif node.__class__.__name__ == "UnaryOp":
         variables += get_operands(node.operand)
     elif node.__class__.__name__ == "Expr":
@@ -187,6 +205,7 @@ def main():
                 for function in functions:
                     func_count += 1
                     vars = get_operands(function)
+                    # print(function.lineno, function.end_lineno)
                     print(str(func_count) + ". Function " + function.name + ": ")
                     print(vars)
 
