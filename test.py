@@ -1,5 +1,6 @@
 x = 1
 print(x)
+import math
 
 def ak(num):
     num = num + 1 # test
@@ -8,13 +9,14 @@ def ak(num):
     '''
 
 def sec():
-    num = 4
+    calcu = 4
     '''
         testing comment
     '''
-    if num == 4:
-        print(num)
+    if calcu == 4:
+        print(calcu)
         '''
             testing comment
         '''
-    ak(num)
+    math.pow(calcu, 3)
+    ak(calcu)

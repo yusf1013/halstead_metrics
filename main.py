@@ -208,22 +208,42 @@ def remove_single_comment(lines):
         lines[counter] = line.split('#')[0] + "\n"
         counter += 1
     return lines
+# b[:4] + b[7+1:]
+
+def remove_operands(lines, operands):
+    
+    for var in operands:
+        line_no = var['lineno']
+        # start_index = var['col_offset']
+        # end_index = var['end_col_offset']
+        
+        lines[line_no] = lines[line_no].replace(var['value'], '')
+    
+    # print_lines(lines)
+    
+    return lines
 
 
-def get_operators(node, lines):
+def insert_operators(lines):
+    list_of_operators = []
+    
+    return list_of_operators
+    
+
+def get_operators(node, lines, operands):
+    operators = []
     block_comment = get_block_comment(node)
-    print(block_comment)
-    # file1 = open('test.py', 'r')
-    # lines = file1.readlines()
+    # print(block_comment)
 
     if len(block_comment) > 0:
-        print("Acheee mama")
         lines = remove_comment(block_comment, lines)
 
     # print("*****Comment Removed*****")
     # print_lines(lines)
+
+    lines = remove_operands(lines, operands)
     
-    
+
 
 def main():
     all_file_names = ["test.py"]
@@ -251,9 +271,13 @@ def main():
                     # print(function.lineno, function.end_lineno)
                     print(str(func_count) + ". Function " + function.name + ": ")
                     # print(vars)
+                    vars.sort(key=lambda x: (x['lineno'], -x['end_col_offset']))
+                    # print("***********Sorted**********")
+                    # print(vars)
                     
-                    get_operators(function, lines_without_single_line_comment)
+                    get_operators(function, lines_without_single_line_comment, vars)
                     
+                print_lines(lines_without_single_line_comment)
 
             except UnicodeDecodeError:
                 print("Skipping " + file_name)
