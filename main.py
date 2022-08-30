@@ -221,13 +221,12 @@ def remove_operands(lines, operands):
         lines[line_no] = lines[line_no].replace(var['value'], '')
         
     return lines
-
+ 
 
 def get_list_of_operators(lines, startLineNo, endLineNo):
     list_of_operators = []    
     
     for i in range(startLineNo, endLineNo+1):
-        string = ""
         regexp = re.compile(r"(\w+)")
         for m in regexp.finditer(lines[i]):
             if len(m.group()) > 0:
