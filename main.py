@@ -1,5 +1,6 @@
 import ast
 import _ast
+import re
 import glob
 
 # all_file_names = glob.glob("F:\\IIT\\Projects\\PyProj" + "/**/*.py", recursive=True)
@@ -224,8 +225,23 @@ def remove_operands(lines, operands):
     return lines
 
 
-def insert_operators(lines):
+def get_list_of_operators(lines):
     list_of_operators = []
+    
+    # (\w+)
+    # s = ".pow(sedo())"
+    # string = ""
+    # regexp = re.compile(r"(\w+)")
+    # for m in regexp.finditer(s):
+    #     string += m.group()
+        
+    # print(string)
+    
+    count = 0
+    for line in lines:
+        # for 
+        
+        count += 1
     
     return list_of_operators
     
@@ -242,6 +258,8 @@ def get_operators(node, lines, operands):
     # print_lines(lines)
 
     lines = remove_operands(lines, operands)
+    
+    operators = get_list_of_operators(lines)
     
 
 
