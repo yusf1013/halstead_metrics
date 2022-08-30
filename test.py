@@ -7,8 +7,10 @@ def ak(num):
     '''
         testing comment
     '''
+    sec(2)
+    sec(2, 3)
 
-def sec():
+def sec(num, num3):
     calcu = 4
     '''
         testing comment
