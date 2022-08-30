@@ -29,7 +29,7 @@ def get_operands(node, parent_node=None):
     variables = []
 
     if is_block_comment(node):
-        comments.append(get_node_detail_obj(node))
+        comments.append(get_node_detail_obj(node, None))
         return variables
 
     if hasattr(node, 'body'):
@@ -106,8 +106,10 @@ def get_node_detail_obj(node, value=None):
         "lineno": node.lineno - 1,
         "end_lineno": node.end_lineno,
         "col_offset": node.col_offset - 1,
-        "end_col_offset": node.end_col_offset
+        "end_col_offset": node.end_col_offset,
+        "value": str(None)
     }
+    
     if value is not None:
 
         value = str(value).replace("\\", "\\\\")
@@ -186,7 +188,7 @@ def is_block_comment(node):
 
 
 def main():
-    all_file_names = ["knn.py"]
+    all_file_names = ["test.py"]
     # all_file_names = ["F:\\IIT\\Projects\\PyProj\\alg_toolbox4\\week_4\\closest_points.py"]
     file_count = 0
     for file_name in all_file_names:
