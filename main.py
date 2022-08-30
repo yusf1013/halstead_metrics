@@ -1,6 +1,8 @@
 import ast
 import _ast
+import re
 import glob
+import math
 
 # all_file_names = glob.glob("F:\\IIT\\Projects\\PyProj" + "/**/*.py", recursive=True)
 solved = ["If", "Compare", "Eq", "List", "Tuple", "IsNot", "Gt", "Lt", "NoneType", "Slice"]
@@ -187,8 +189,112 @@ def is_block_comment(node):
     return node.__class__.__name__ == "Expr" and node.value.__class__.__name__ == "Constant"
 
 
+def remove_comment(block_comment, lines):
+    
+    for comment in block_comment:        
+        for x in range(comment['lineno'], comment['end_lineno']+1):
+            lines[x-1] = " \n"
+
+    return lines
+
+
+def print_lines(lines):
+    count = 0
+    for line in lines:
+        count += 1
+        print("Line{}: {}".format(count, line))
+
+
+def remove_single_comment(lines):
+    counter = 0
+    
+    for line in lines:
+        lines[counter] = line.split('#')[0] + "\n"
+        counter += 1
+    return lines
+
+
+def remove_operands(lines, operands):
+    
+    for var in operands:
+        line_no = var['lineno']
+        
+        lines[line_no] = lines[line_no].replace(var['value'], '')
+        
+    return lines
+
+
+def get_list_of_operators(lines, startLineNo, endLineNo):
+    list_of_operators = []    
+    
+    for i in range(startLineNo, endLineNo+1):
+        string = ""
+        regexp = re.compile(r"(\w+)")
+        for m in regexp.finditer(lines[i]):
+            if len(m.group()) > 0:
+                list_of_operators.append(m.group())
+        
+        for char in lines[i]:
+            if char not in [' ', '\n', '_'] and ( not (char >= 'a' and char <='z')) and (not (char >= 'A' and char <='Z')) :
+                list_of_operators.append(char)
+                
+    return list_of_operators
+    
+
+def get_operators(node, lines, operands, startLineNo, endLineNo):
+    operators = []
+    block_comment = get_block_comment(node)
+
+    if len(block_comment) > 0:
+        lines = remove_comment(block_comment, lines)
+
+    lines = remove_operands(lines, operands)
+    operators = get_list_of_operators(lines, startLineNo, endLineNo)
+    
+    return operators
+
+def get_only_operands(operands):
+    only_operands = []
+    
+    for op in operands:
+        only_operands.append(op['value'])
+    
+    return only_operands
+
+
+def calculate_halstead(operands, operators):
+    only_operands = get_only_operands(operands)
+    unique_operators = list(dict.fromkeys(operators))
+    unique_operands = list(dict.fromkeys(only_operands))
+    
+    N1 = len(operators)
+    N2 = len(only_operands)
+    
+    n1 = len(unique_operators)
+    n2 = len(unique_operands)
+    
+    program_vocabulary = n1+n2
+    program_length = N1+N2
+    calculated_program_length = (n1 * math.log2(n1)) + (n2 * math.log2(n2))
+    volume = program_length * math.log2(program_vocabulary)
+    difficulty = (n1/2) * (N2/n2)
+    effort = difficulty * volume
+    
+    print("The total number of operators,N1 = ", N1)
+    print("The total number of operands,N2 = ", N2)
+    print("The number of distinct operators,n1 = ", n1)
+    print("The number of distinct operands,n2 = ", n2)
+    print("P0rogram Vocabulary,n = ", program_vocabulary)
+    print("Program Length,N = ", program_length)
+    print("Calculated Program Length,N^ = ", calculated_program_length)
+    print("Volume,V = ", volume)
+    print("Difficulty,D = ", difficulty)
+    print("Effort,E = ", effort, end="\n\n")
+
+
+
 def main():
-    all_file_names = ["test.py"]
+    all_file_names = ["knn.py"]
     # all_file_names = ["F:\\IIT\\Projects\\PyProj\\alg_toolbox4\\week_4\\closest_points.py"]
     file_count = 0
     for file_name in all_file_names:
@@ -203,13 +309,20 @@ def main():
                 nodes = ast.parse(file)
                 functions = get_function_nodes(nodes)
                 func_count = 0
-
+                lines_without_single_line_comment = remove_single_comment(file_in_lines)
+                
                 for function in functions:
                     func_count += 1
                     vars = get_operands(function)
                     # print(function.lineno, function.end_lineno)
                     print(str(func_count) + ". Function " + function.name + ": ")
-                    print(vars)
+                    # print(vars)
+                    
+                    vars.sort(key=lambda x: (x['lineno'], -x['end_col_offset']))
+                    
+                    all_operators = get_operators(function, lines_without_single_line_comment, vars, function.lineno, function.end_lineno)
+                    
+                    calculate_halstead(vars, all_operators)
 
             except UnicodeDecodeError:
                 print("Skipping " + file_name)
